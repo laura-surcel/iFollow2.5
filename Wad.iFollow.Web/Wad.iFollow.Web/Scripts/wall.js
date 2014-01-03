@@ -66,3 +66,19 @@ $(function () {
         return false;
     });
 });
+
+$(function () {
+    $('#deleteForm').submit(function () {
+        if ($(this).valid()) {
+            $.ajax({
+                url: this.action,
+                type: this.method,
+                data: $(this).serialize(),
+                success: function (result) {
+                    $('#myModal'+result.id).modal('hide');
+                }
+            });
+        }
+        return false;
+    });
+});

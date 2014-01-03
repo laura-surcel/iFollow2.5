@@ -1,8 +1,9 @@
 ﻿@model Wad.iFollow.Web.Models.WallData
+<h4 class="beautifulFont" style="color: black; font-family: 'Arabic Typesetting'; font-size: 30px">Comments: </h4>
 <div id="comm-@Model.postId"></div>
 @using (Html.BeginForm("SetComment", "Wall", FormMethod.Post, new { id = "commentForm"}))
 {
     @Html.HiddenFor(m => m.postId)
     @Html.TextAreaFor(m => m.currentComment)
-    <input type="submit" value="OK" />
+    <button type="submit" class="btn btn-primary">Add comment</button>
 }

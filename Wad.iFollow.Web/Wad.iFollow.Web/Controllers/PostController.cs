@@ -97,5 +97,11 @@ namespace Wad.iFollow.Web.Controllers
 
             return RedirectToAction("MainPage", "Wall");
         }
+
+        public ActionResult DeletePost(string postId)
+        {
+            JsonResult result = Json(new { id = postId});
+            return result;
+        }
     }
 }
