@@ -100,8 +100,44 @@ namespace Wad.iFollow.Web.Controllers
 
         public ActionResult DeletePost(string postId)
         {
-            JsonResult result = Json(new { id = postId});
-            return result;
+            long postIId = Convert.ToInt64(postId);
+            using (var entities = new ifollowdatabaseEntities4())
+            {
+                post postToDelete = null;
+                image imageToDelete = null;
+
+                if(entities.posts.Any(p => p.id == postIId))
+                {
+                    postToDelete = entities.posts.First(p => p.id == postIId);
+                    if (entities.images.Any(i => i.id == postToDelete.imageId))
+                    {
+                        imageToDelete = entities.images.First(i => i.id == postToDelete.imageId);
+                    }
+                }
+
+                if(postToDelete != null)
+                    entities.posts.Remove(postToDelete);
+
+                if (imageToDelete != null)
+                    entities.images.Remove(imageToDelete);
+
+                try
+                {
+                    entities.SaveChanges();
+                }
+                catch (DbEntityValidationException dbEx)
+                {
+                    foreach (var validationErrors in dbEx.EntityValidationErrors)
+                    {
+                        foreach (var validationError in validationErrors.ValidationErrors)
+                        {
+                            Trace.TraceInformation("Property: {0} Error: {1}", validationError.PropertyName, validationError.ErrorMessage);
+                        }
+                    }
+                }
+            }
+
+            return RedirectToAction("MainPage", "Wall");
         }
     }
 }

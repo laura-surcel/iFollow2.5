@@ -8,6 +8,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using Wad.iFollow.Web.Models;
+using Newtonsoft.Json;
 
 namespace Wad.iFollow.Web.Controllers
 {
@@ -56,7 +57,7 @@ namespace Wad.iFollow.Web.Controllers
                 }
             }
 
-            wpm.BuildFromImagesAndPosts(currentUser.posts, currentUser.images);
+            wpm.BuildFromImagesAndPosts(currentUser.posts, currentUser.images, currentUser.id);
 
             return View(wpm);          
         }
@@ -94,8 +95,67 @@ namespace Wad.iFollow.Web.Controllers
 
         public ActionResult SetComment(string currentComment,string postId)
         {
-            JsonResult json = Json(new { message = currentComment,id = postId });
+            user currentUser = Session["user"] as user;
+            string username = currentUser.firstName + " " + currentUser.lastName;
+
+            using (var entities = new ifollowdatabaseEntities4())
+            {
+                comment c = new comment();
+                c.message = currentComment;
+                c.postId = Convert.ToInt64(postId);
+                c.userId = currentUser.id;
+                c.dateCreated = DateTime.UtcNow;
+                c.id = entities.comments.Count() + 1;
+                entities.comments.Add(c);
+
+                try
+                {
+                    entities.SaveChanges();
+                }
+                catch (DbEntityValidationException dbEx)
+                {
+                    foreach (var validationErrors in dbEx.EntityValidationErrors)
+                    {
+                        foreach (var validationError in validationErrors.ValidationErrors)
+                        {
+                            Trace.TraceInformation("Property: {0} Error: {1}", validationError.PropertyName, validationError.ErrorMessage);
+                        }
+                    }
+                }
+            }
+
+            JsonResult json = Json(new { message = currentComment, id = postId, username = username });
             return json;
+        }
+
+        public ActionResult GetCommentsForPost(string postId)
+        {
+            List<WallComment> deliever = new List<WallComment>();
+
+            long pId = Convert.ToInt64(postId);
+            using (var entities = new ifollowdatabaseEntities4())
+            {
+                if (entities.comments.Any(c => c.postId == pId))
+                {
+                    List<comment> comms = entities.comments.ToList<comment>();
+                    
+                    foreach(var c in comms)
+                    {
+                        if (c.postId == pId)
+                        {
+                            WallComment cc = new WallComment();
+                            cc.message = c.message;
+                            cc.username = c.user.firstName + " " + c.user.lastName;
+                            cc.dateCreated = (DateTime)c.dateCreated;
+                            deliever.Add(cc);
+                        }
+                    }
+                }
+            }
+
+            var jsonSerializer = new System.Web.Script.Serialization.JavaScriptSerializer();
+            JsonResult json = Json(new { list =  jsonSerializer.Serialize(deliever)}, JsonRequestBehavior.AllowGet);
+            return json;            
         }
 
         public ActionResult Settings()
@@ -161,7 +221,7 @@ namespace Wad.iFollow.Web.Controllers
             pm.postsCount = currentUser.posts.Count();
             pm.followersCount = currentUser.followers.Count();
             pm.followedCount = currentUser.followers1.Count();
-            pm.elements.BuildFromImagesAndPosts(currentUser.posts, currentUser.images);
+            pm.elements.BuildFromImagesAndPosts(currentUser.posts, currentUser.images, currentUserId);
             pm.userId = currentUser.id;
 
             ViewBag.Message = "Your profile page.";
@@ -171,13 +231,13 @@ namespace Wad.iFollow.Web.Controllers
         public ActionResult ViewPosts(long user)
         {
             ProfileModel pm = new ProfileModel();
-            
+            user thisUser = (Session["user"] as user);
             user currentUser = entities.users.First(u => u.id == user);
             pm.userName = currentUser.firstName;
             pm.postsCount = currentUser.posts.Count();
             pm.followersCount = currentUser.followers.Count();
             pm.followedCount = currentUser.followers1.Count();
-            pm.elements.BuildFromImagesAndPosts(currentUser.posts, currentUser.images);
+            pm.elements.BuildFromImagesAndPosts(currentUser.posts, currentUser.images, thisUser.id);
 
             if (pm.elements.wallElements.Count() == 0)
             {

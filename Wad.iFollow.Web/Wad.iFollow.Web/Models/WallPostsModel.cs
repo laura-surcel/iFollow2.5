@@ -18,6 +18,14 @@ namespace Wad.iFollow.Web.Models
         public string Message { get; set; }
         public string Author { get; set; }
         public string AuthorAvatar { get; set; }
+        public bool BelongsToUser { get; set; }
+    }
+
+    public class WallComment
+    {
+        public string message { get; set; }
+        public string username { get; set; }
+        public DateTime dateCreated { get; set; }
     }
 
     public class WallPostsModel
@@ -34,7 +42,7 @@ namespace Wad.iFollow.Web.Models
             }
         }
 
-        public void BuildFromImagesAndPosts(ICollection<post> posts, ICollection<image> images)
+        public void BuildFromImagesAndPosts(ICollection<post> posts, ICollection<image> images, long currentUserId)
         {
             List<post> orderedList = posts.ToList();
             orderedList.Sort(new PostsComparer());
@@ -56,6 +64,7 @@ namespace Wad.iFollow.Web.Models
                     var rat = conn.ratings.Where(r => r.postId == currentPost.id).ToList();
                     rat.ForEach(rr => sum += rr.value);
                     newModel.rating = (sum != 0)?(float) sum / rat.Count() : 0;
+                    newModel.BelongsToUser = (author.id == currentUserId);
 
                     if (conn.images.Any(i => i.ownerId == author.id && i.isAvatar == true))
                     {
