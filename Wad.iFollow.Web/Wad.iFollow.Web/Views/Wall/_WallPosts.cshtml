@@ -6,21 +6,19 @@
             url: "Wall/GetCommentsForPost",
             type: "get", //send it through get method
             data: { postId: postId },
-            dataType: "json",
+            dataType: "text",
             success: function (response, status, xhr) {
                 //Do Something
                 $('#btn-' + postId).removeAttr('disabled');
-                var parsedJson = JSON.parse(response.list);
-                
-                for (var c in parsedJson) {
-                    var userName = c["username"] + ' said:';
+                var parsedJson = JSON.parse(response);
+                for (i = 0; i < parsedJson.length; i++) {
+                    var userName = parsedJson[i].username + ' said:';
                     var htmlString = '<div class="col-md-1"></div><p style="text-align:left; background:border-box ; background-color:#eec463; color:black; width="200px"">';
-                    var date = c["dateCreated"];
-                    var final = userName + htmlString + c["message"] + '</p>' + date + '<br></br>';
+                    var date = parsedJson[i].dateCreated;
+                    var final = userName + htmlString + parsedJson[i].message + '</p>' + date + '<br></br>';
 
                     $('#comm-' + postId).append(final);
                 }
-                alert('yeey: '+parsedJson);
             },
             error: function (xhr) {
                 //Do Something to handle error

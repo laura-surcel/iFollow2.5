@@ -5,13 +5,15 @@ using System.Web;
 using System.Web.Mvc;
 using System.IO;
 using System.Diagnostics;
+using System.ComponentModel.DataAnnotations;
 
 namespace Wad.iFollow.Web.Models
 {
     public class WallData
     {
-        public string currentComment;
-        public List<comment> comments;
+        [Required]
+        public string currentComment { get; set; }
+        public List<comment> comments { get; set; }
         public float rating { get; set; }
         public string postId { get; set; }
         public string Path { get; set; }
@@ -25,7 +27,7 @@ namespace Wad.iFollow.Web.Models
     {
         public string message { get; set; }
         public string username { get; set; }
-        public DateTime dateCreated { get; set; }
+        public string dateCreated { get; set; }
     }
 
     public class WallPostsModel

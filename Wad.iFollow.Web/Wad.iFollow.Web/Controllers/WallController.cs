@@ -93,7 +93,7 @@ namespace Wad.iFollow.Web.Controllers
             }
         }
 
-        public ActionResult SetComment(string currentComment,string postId)
+        public ActionResult SetComment(string currentComment, string postId)
         {
             user currentUser = Session["user"] as user;
             string username = currentUser.firstName + " " + currentUser.lastName;
@@ -128,7 +128,7 @@ namespace Wad.iFollow.Web.Controllers
             return json;
         }
 
-        public ActionResult GetCommentsForPost(string postId)
+        public string GetCommentsForPost(string postId)
         {
             List<WallComment> deliever = new List<WallComment>();
 
@@ -146,16 +146,13 @@ namespace Wad.iFollow.Web.Controllers
                             WallComment cc = new WallComment();
                             cc.message = c.message;
                             cc.username = c.user.firstName + " " + c.user.lastName;
-                            cc.dateCreated = (DateTime)c.dateCreated;
+                            cc.dateCreated = c.dateCreated.ToString();
                             deliever.Add(cc);
                         }
                     }
                 }
-            }
-
-            var jsonSerializer = new System.Web.Script.Serialization.JavaScriptSerializer();
-            JsonResult json = Json(new { list =  jsonSerializer.Serialize(deliever)}, JsonRequestBehavior.AllowGet);
-            return json;            
+            }       
+            return JsonConvert.SerializeObject(deliever, Formatting.Indented);
         }
 
         public ActionResult Settings()
